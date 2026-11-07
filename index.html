@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Numerical Integration & Normal CDF — Interactive Lab</title>
+<style>
+:root{--bg:#081321;--panel:#101f33;--panel2:#142840;--line:#29435e;--ink:#eaf2fb;--muted:#9db1c8;--cyan:#55d6e8;--blue:#7aa7ff;--gold:#f3c969;--pink:#f28ca8;--green:#7ce0b1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0%,#173657 0,transparent 32%),var(--bg);color:var(--ink);font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:28px 20px 70px}.hero{padding:38px 0 28px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--cyan);font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:800}.hero h1{font-size:clamp(32px,5vw,54px);line-height:1.05;max-width:850px;margin:12px 0}.hero p{max-width:780px;color:var(--muted);font-size:17px}.tag{display:inline-block;border:1px solid #326078;color:#a9edf3;padding:5px 10px;border-radius:99px;font-size:12px;margin:5px 5px 0 0}
+nav{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}nav a{color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:9px;font-size:13px}
+section{margin-top:34px;scroll-margin-top:15px}.sectionhead{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:16px}.sectionhead h2{margin:0;font-size:25px}.sectionhead p{margin:0;color:var(--muted);max-width:590px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:linear-gradient(145deg,var(--panel),#0d1a2b);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}.span8{grid-column:span 8}.span7{grid-column:span 7}.span6{grid-column:span 6}.span5{grid-column:span 5}.span4{grid-column:span 4}.span12{grid-column:span 12}
+label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin:0 0 6px}select,input,button{font:inherit}select,input{width:100%;background:#091727;color:var(--ink);border:1px solid #35516c;border-radius:9px;padding:10px 11px;outline:none}input[type=range]{padding:0;accent-color:var(--cyan)}button{border:0;border-radius:9px;background:var(--cyan);color:#05202a;font-weight:800;padding:10px 15px;cursor:pointer}button.secondary{background:#1d3955;color:var(--ink);border:1px solid #3b5a77}.controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.metricrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{background:#091727;border:1px solid #28435c;border-radius:12px;padding:12px}.metric small{display:block;color:var(--muted);font-size:11px}.metric strong{font-size:19px;font-variant-numeric:tabular-nums}.note{color:var(--muted);font-size:13px}.math{font-family:Georgia,serif;color:#eaf8ff;font-size:17px;overflow-wrap:anywhere}.chart{width:100%;height:auto;display:block;background:#091727;border:1px solid #263f58;border-radius:12px}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #263f58;white-space:nowrap}th{color:#a9c4dc;font-weight:700}.pill{color:var(--green);font-size:11px;border:1px solid #28664e;border-radius:99px;padding:3px 8px}.callout{border-left:3px solid var(--gold);padding:10px 13px;background:#18283a;color:#dce9f7;border-radius:0 9px 9px 0;font-size:13px}.muted{color:var(--muted)}footer{margin-top:45px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:12px}
+@media(max-width:760px){.span8,.span7,.span6,.span5,.span4{grid-column:span 12}.controls{grid-template-columns:1fr 1fr}.controls>div:first-child{grid-column:span 2}.sectionhead{display:block}.sectionhead p{margin-top:5px}.metricrow{grid-template-columns:1fr}}
+</style></head>
+<body><main class="wrap">
+<header class="hero"><div class="eyebrow">Interactive numerical analysis laboratory · Ex 1 + Ex 2</div>
+<h1>From area to probability.</h1><p>Explore two viewpoints on integration, see where discretisation succeeds or fails, and compare practical algorithms for the standard normal cumulative distribution function.</p>
+<span class="tag">Riemann sums</span><span class="tag">Lebesgue-inspired bins</span><span class="tag">Pathological functions</span><span class="tag">Normal CDF</span></header>
+<nav><a href="#integration">01 · Integration lab</a><a href="#convergence">02 · Convergence</a><a href="#cdf">03 · Normal CDF</a><a href="#theory">04 · Notes</a></nav>
+
+<section id="integration"><div class="sectionhead"><h2>01 / Riemann vs. Lebesgue-inspired integration</h2><p>Choose a function and resolution. The range-bin method estimates the measure of each value-bin preimage from a uniform grid of domain samples.</p></div>
+<div class="grid">
+<div class="card span5"><div class="controls" style="grid-template-columns:1fr 1fr">
+<div style="grid-column:span 2"><label for="func">Test function</label><select id="func">
+<option value="sin">sin(x), [0, π]</option><option value="square">x², [0, 1]</option><option value="step">1 then 3, [0, 1]</option><option value="abs">|x − 0.5|, [0, 1]</option><option value="singular">1/√x, (0, 1]</option><option value="indicator">1 if x &lt; 0.5, else 0</option><option value="sinc">sin(x)/x, [0, π], continuous at 0</option><option value="dirichlet">Dirichlet: 1 on Q, 0 otherwise</option><option value="thomae">Thomae's function, [0, 1]</option></select></div>
+<div><label for="n">Domain samples / subintervals</label><select id="n"><option>100</option><option selected>500</option><option>1000</option><option>5000</option><option>10000</option><option>50000</option></select></div>
+<div><label for="bins">Range bins</label><select id="bins"><option>10</option><option selected>40</option><option>100</option><option>250</option><option>500</option></select></div>
+</div><div class="actions"><button id="runInt">Compute estimates</button><button class="secondary" id="runConv">Run convergence sweep</button></div>
+<p class="note" id="functionNote">Continuous function; exact integral = 2.</p>
+<div class="callout" style="margin-top:12px">The Lebesgue-inspired estimate is a finite range quantisation: <span class="math">Σᵢ cᵢ · μ(f⁻¹(Bᵢ))</span>. It is not a symbolic measurement of arbitrary preimages; its accuracy depends on domain sampling and bin width.</div></div>
+<div class="card span7"><div class="metricrow">
+<div class="metric"><small>Midpoint Riemann</small><strong id="mid">—</strong></div><div class="metric"><small>Trapezoidal Riemann</small><strong id="trap">—</strong></div><div class="metric"><small>Range-bin estimate</small><strong id="leb">—</strong></div></div>
+<div style="margin-top:14px"><svg id="funcChart" class="chart" viewBox="0 0 700 270" role="img" aria-label="Function plot"></svg></div><p class="note" id="exactText">Reference integral: —</p></div>
+<div class="card span12"><h3 style="margin:0 0 10px">Numerical comparison</h3><div class="tablewrap"><table><thead><tr><th>Method</th><th>Estimate</th><th>Absolute error</th><th>Comment</th></tr></thead><tbody id="resultRows"><tr><td colspan="4" class="muted">Press Compute estimates.</td></tr></tbody></table></div><p class="note" id="pathologyNote"></p></div>
+</div></section>
+
+<section id="convergence"><div class="sectionhead"><h2>02 / Convergence experiment</h2><p>Track error as the domain resolution increases. The graph uses log-scaled axes when positive errors are available.</p></div>
+<div class="card"><div class="metricrow"><div class="metric"><small>Selected function</small><strong id="convName">—</strong></div><div class="metric"><small>Largest tested N</small><strong id="convN">—</strong></div><div class="metric"><small>Range partition</small><strong id="convBins">—</strong></div></div><svg id="convChart" class="chart" viewBox="0 0 900 330" style="margin-top:14px" aria-label="Convergence plot"></svg><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>N</th><th>Midpoint error</th><th>Trapezoid error</th><th>Range-bin error</th></tr></thead><tbody id="convRows"></tbody></table></div><p class="note">For the Dirichlet function, sampled rational points are not representative of the uncountable irrationals: the grid can produce a misleading value. Mathematical upper and lower Riemann sums remain 1 and 0 at every partition.</p></div></section>
+
+<section id="cdf"><div class="sectionhead"><h2>03 / Standard normal CDF calculator</h2><p>Compare a composite Simpson integrator, an erf power series and a fast polynomial approximation against a trusted reference table.</p></div>
+<div class="grid">
+<div class="card span4"><label for="zval">Evaluate Φ(z)</label><input id="zval" type="number" step="0.1" value="1.0"><div class="actions"><button id="calcCDF">Calculate</button><button class="secondary" id="cdfExamples">Load test points</button></div><p class="note">The Simpson method integrates the density from 0 to |z| and uses symmetry. The series computes erf(z/√2) and is best suited to moderate |z|. The polynomial is the Abramowitz–Stegun 7.1.26 approximation.</p></div>
+<div class="card span8"><div class="metricrow"><div class="metric"><small>Simpson integration</small><strong id="cdfS">—</strong></div><div class="metric"><small>erf power series</small><strong id="cdfE">—</strong></div><div class="metric"><small>Fast erf approximation</small><strong id="cdfA">—</strong></div></div><p class="note" id="cdfRef" style="margin-bottom:0">Reference value: —</p></div>
+<div class="card span12"><h3 style="margin:0 0 10px">Test-point comparison</h3><div class="tablewrap"><table><thead><tr><th>z</th><th>Reference Φ(z)</th><th>Simpson</th><th>|error|</th><th>erf series</th><th>|error|</th><th>Fast approximation</th><th>|error|</th></tr></thead><tbody id="cdfRows"></tbody></table></div><svg id="cdfChart" class="chart" viewBox="0 0 900 300" style="margin-top:14px" aria-label="Normal density and cumulative distribution"></svg></div>
+</div></section>
+<section id="theory"><div class="sectionhead"><h2>04 / Mathematical notes</h2><p>Definitions, caveats and interpretation needed to read the numerical experiments correctly.</p></div><div class="grid">
+<div class="card span6"><h3>Riemann viewpoint</h3><p class="math">∫ₐᵇ f(x) dx ≈ Σ f(ξᵢ) Δxᵢ</p><p class="note">The partition is made in the domain. Midpoint and trapezoidal rules are used here as practical quadrature schemes. For continuous functions, their errors decrease as the mesh is refined.</p></div>
+<div class="card span6"><h3>Lebesgue viewpoint</h3><p class="math">∫ f dμ ≈ Σ cⱼ μ({x : f(x) ∈ Bⱼ})</p><p class="note">The partition is made in the range; each bin is weighted by the measure of its preimage. This implementation estimates those measures by counting domain samples in each bin.</p></div>
+<div class="card span6"><h3>Normal CDF and erf</h3><p class="math">Φ(z) = ½ [1 + erf(z/√2)]</p><p class="note">erf is a special function, defined by an integral. It gives an exact analytical representation, but its numerical value still requires an algorithm or a high-quality library.</p></div>
+<div class="card span6"><h3>Liouville's theorem</h3><p class="note">Liouville's theorem in differential algebra gives criteria for an elementary antiderivative. For exp(−x²), it would require a rational function R satisfying R′ − 2xR = 1. No such rational function exists: poles are impossible, so R would be polynomial, but its highest-degree term cannot cancel to produce 1. Thus the Gaussian antiderivative is not elementary.</p></div>
+</div></section>
+<footer></footer>
+</main>
+<script>
+const $=id=>document.getElementById(id), PI=Math.PI;
+const defs={
+sin:{a:0,b:PI,f:x=>Math.sin(x),exact:2,note:"Continuous and smooth. Exact integral: 2."},
+square:{a:0,b:1,f:x=>x*x,exact:1/3,note:"Continuous polynomial. Exact integral: 1/3."},
+step:{a:0,b:1,f:x=>x<.5?1:3,exact:2,note:"One jump discontinuity. Riemann-integrable; exact integral: 2."},
+abs:{a:0,b:1,f:x=>Math.abs(x-.5),exact:.25,note:"Continuous with a corner. Exact integral: 1/4."},
+singular:{a:0,b:1,f:x=>x===0?0:1/Math.sqrt(x),exact:2,note:"Unbounded at zero; improper integral equals 2. Midpoint/trapezoid use a finite endpoint convention and converge more slowly."},
+indicator:{a:0,b:1,f:x=>x<.5?1:0,exact:.5,note:"Step indicator. Riemann-integrable; exact integral: 1/2."},
+sinc:{a:0,b:PI,f:x=>x===0?1:Math.sin(x)/x,exact:1.851937051982466,note:"Continuous extension at zero. Integral is Si(π) ≈ 1.851937051982466."},
+dirichlet:{a:0,b:1,f:x=>1,exact:0,note:"Dirichlet function: 1 on rationals, 0 on irrationals. Grid values are all rational in exact mathematics, so sampled estimates return 1; Lebesgue integral is 0 and Riemann integrability fails."},
+thomae:{a:0,b:1,f:x=>{if(x===0)return 1;let q=1000000;for(let d=1;d<=1000;d++){let p=Math.round(x*d);if(Math.abs(x-p/d)<1e-10){q=d;break;}}return q===1000000?0:1/q;},exact:0,note:"Thomae function: continuous at irrationals and discontinuous at rationals. Riemann-integrable with integral 0; finite floating-point rational detection is only illustrative."}
+};
+function fmt(x){return Number.isFinite(x)?x.toPrecision(10):String(x)}
+function sums(d,n){let h=(d.b-d.a)/n,mid=0,trap=0,vals=[];for(let i=0;i<n;i++){let x=d.a+(i+.5)*h,y=d.f(x);if(!Number.isFinite(y))y=0;mid+=y*h;let y0=d.f(d.a+i*h),y1=d.f(d.a+(i+1)*h);if(!Number.isFinite(y0))y0=0;if(!Number.isFinite(y1))y1=0;trap+=(y0+y1)*h/2;vals.push(y)}return {mid,trap,vals,h}}
+function rangeEstimate(d,n,bins){let {vals,h}=sums(d,n),lo=Math.min(...vals),hi=Math.max(...vals);if(lo===hi)return lo*(d.b-d.a);let width=(hi-lo)/bins,counts=new Array(bins).fill(0),sum=0;for(let y of vals){let k=Math.min(bins-1,Math.floor((y-lo)/width));counts[k]++;}for(let j=0;j<bins;j++){let c=lo+(j+.5)*width;sum+=c*counts[j]*h;}return sum}
+function drawFunction(d){let svg=$("funcChart"),W=700,H=270,L=45,R=18,T=18,B=34,points=[];for(let i=0;i<=300;i++){let x=d.a+(d.b-d.a)*i/300,y=d.f(x);if(!Number.isFinite(y))y=0;points.push([x,y])}let ymin=Math.min(0,...points.map(p=>p[1])),ymax=Math.max(...points.map(p=>p[1]));if(ymax===ymin)ymax=ymin+1;let X=x=>L+(x-d.a)/(d.b-d.a)*(W-L-R),Y=y=>H-B-(y-ymin)/(ymax-ymin)*(H-T-B);let path=points.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(2)+","+Y(p[1]).toFixed(2)).join(" ");let grid="";for(let i=0;i<5;i++){let y=T+i*(H-T-B)/4;grid+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#203b55"/><text x="7" y="${y+4}" fill="#8fa9c1" font-size="10">${(ymax-(y-T)/(H-T-B)*(ymax-ymin)).toFixed(2)}</text>`}svg.innerHTML=grid+`<path d="${path}" fill="none" stroke="#55d6e8" stroke-width="2.7"/><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="#7892aa"/><text x="${L}" y="${H-9}" fill="#9db1c8" font-size="11">${d.a.toFixed(2)}</text><text x="${W-R-30}" y="${H-9}" fill="#9db1c8" font-size="11">${d.b.toFixed(2)}</text>`}
+function compute(){let d=defs[$("func").value],n=+$("n").value,b=+$("bins").value,s=sums(d,n),l=rangeEstimate(d,n,b);$("mid").textContent=fmt(s.mid);$("trap").textContent=fmt(s.trap);$("leb").textContent=fmt(l);$("functionNote").textContent=d.note;$("exactText").textContent="Reference integral: "+fmt(d.exact)+" · N = "+n+" · range bins = "+b;drawFunction(d);let rows=[["Midpoint Riemann",s.mid,"Domain partition; second-order for smooth functions."],["Trapezoidal Riemann",s.trap,"Domain partition; second-order for smooth functions."],["Range-bin (Lebesgue-inspired)",l,"Range partition; preimage measures estimated by sample counts."]];$("resultRows").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(Math.abs(r[1]-d.exact))}</td><td>${r[2]}</td></tr>`).join("");$("pathologyNote").textContent=d.note}
+function logChart(svg,series){let W=900,H=330,L=75,R=22,T=20,B=48,all=series.flatMap(s=>s.data.filter(p=>p[1]>0).map(p=>p[1]));if(!all.length){svg.innerHTML='<text x="30" y="50" fill="#eaf2fb">No positive errors to plot.</text>';return}let ymin=Math.min(...all),ymax=Math.max(...all),lx=Math.log10,y0=lx(ymin),y1=lx(ymax);if(y0===y1)y1+=1;let X=n=>L+(Math.log10(n)-Math.log10(100))/(Math.log10(50000)-Math.log10(100))*(W-L-R),Y=v=>H-B-(lx(v)-y0)/(y1-y0)*(H-T-B),colors=["#55d6e8","#7aa7ff","#f3c969"];let g="";for(let j=0;j<5;j++){let y=T+j*(H-T-B)/4,v=10**(y1-j*(y1-y0)/4);g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#203b55"/><text x="8" y="${y+4}" fill="#9db1c8" font-size="11">${v.toExponential(1)}</text>`}for(let j=0;j<5;j++){let n=100*10**(j*(Math.log10(50000)-2)/4),x=X(n);g+=`<text x="${x-12}" y="${H-17}" fill="#9db1c8" font-size="11">${Math.round(n)}</text>`}series.forEach((s,k)=>{let pts=s.data.filter(p=>p[1]>0).map(p=>`${X(p[0])},${Y(p[1])}`).join(" ");g+=`<polyline points="${pts}" fill="none" stroke="${colors[k]}" stroke-width="2.5"/>`});g+=series.map((s,k)=>`<rect x="${L+k*190}" y="7" width="10" height="10" fill="${colors[k]}"/><text x="${L+15+k*190}" y="16" fill="#c9d8e7" font-size="11">${s.name}</text>`).join("");svg.innerHTML=g}
+function convergence(){let d=defs[$("func").value],bins=+$("bins").value,ns=[100,200,500,1000,2000,5000,10000,20000,50000],series=[{name:"Midpoint",data:[]},{name:"Trapezoid",data:[]},{name:"Range bins",data:[]}];$("convRows").innerHTML=ns.map(n=>{let s=sums(d,n),l=rangeEstimate(d,n,bins),a=Math.abs(s.mid-d.exact),b=Math.abs(s.trap-d.exact),c=Math.abs(l-d.exact);series[0].data.push([n,a]);series[1].data.push([n,b]);series[2].data.push([n,c]);return `<tr><td>${n}</td><td>${a.toExponential(4)}</td><td>${b.toExponential(4)}</td><td>${c.toExponential(4)}</td></tr>`}).join("");$("convName").textContent=$("func").selectedOptions[0].text;$("convN").textContent="50,000";$("convBins").textContent=bins;logChart($("convChart"),series)}
+$("runInt").onclick=compute;$("runConv").onclick=()=>{compute();convergence()};$("func").onchange=compute;compute();
+
+function erfSeries(x){let sum=0,term=x;for(let n=0;n<180;n++){let add=term/(2*n+1);sum+=add;term*=-(x*x)/(n+1);if(Math.abs(add)<1e-17)break;}return 2/Math.sqrt(Math.PI)*sum}
+function erfFast(x){let sign=x<0?-1:1,a=Math.abs(x),t=1/(1+.3275911*a);let y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-a*a);return sign*y}
+function simpsonCDF(z,n=4000){let a=0,b=Math.abs(z),h=b/n,sum=Math.exp(0)+Math.exp(-b*b/2);for(let i=1;i<n;i++){let x=i*h;sum+=(i%2?4:2)*Math.exp(-x*x/2)}let area=h*sum/3/Math.sqrt(2*Math.PI);return z>=0?.5+area:.5-area}
+function erfCDF(z,fn){let v=fn(Math.abs(z)/Math.sqrt(2));return z>=0?.5*(1+v):.5*(1-v)}
+function logGammaHalf(){return 0.5723649429247001}
+function gammaQHalf(x){
+ if(x<=0)return 1;
+ const a=.5,gln=logGammaHalf(),tiny=1e-300,eps=3e-14;
+ const pref=Math.exp(-x+a*Math.log(x)-gln);
+ if(x<a+1){
+  let ap=a,del=1/a,sum=del;
+  for(let n=1;n<10000;n++){ap+=1;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*eps)break;}
+  return Math.max(0,Math.min(1,1-sum*pref));
+ }
+ let b=x+1-a,c=1/tiny,d=1/b,h=d;
+ for(let i=1;i<10000;i++){
+  let an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<tiny)d=tiny;
+  c=b+an/c;if(Math.abs(c)<tiny)c=tiny;d=1/d;
+  let delta=d*c;h*=delta;if(Math.abs(delta-1)<eps)break;
+ }
+ return Math.max(0,Math.min(1,pref*h));
+}
+function refCDF(z){
+ const q=gammaQHalf(z*z/2);
+ return z>=0?1-.5*q:.5*q;
+}
+function cdfCalc(){let z=+$("zval").value,s=simpsonCDF(z),e=erfCDF(z,erfSeries),a=erfCDF(z,erfFast),r=refCDF(z);$("cdfS").textContent=fmt(s);$("cdfE").textContent=fmt(e);$("cdfA").textContent=fmt(a);$("cdfRef").textContent="Reference (regularized-gamma evaluation): "+fmt(r)+" · Simpson error "+Math.abs(s-r).toExponential(3)+" · Fast approximation error "+Math.abs(a-r).toExponential(3)}
+function cdfTable(){let zs=[-3,-2,-1,-.5,0,.5,1,1.5,2,3];$("cdfRows").innerHTML=zs.map(z=>{let r=refCDF(z),s=simpsonCDF(z),e=erfCDF(z,erfSeries),a=erfCDF(z,erfFast);return `<tr><td>${z.toFixed(1)}</td><td>${r.toFixed(10)}</td><td>${s.toFixed(10)}</td><td>${Math.abs(s-r).toExponential(2)}</td><td>${e.toFixed(10)}</td><td>${Math.abs(e-r).toExponential(2)}</td><td>${a.toFixed(10)}</td><td>${Math.abs(a-r).toExponential(2)}</td></tr>`}).join("");drawCDF()}
+function drawCDF(){let svg=$("cdfChart"),W=900,H=300,L=45,R=20,T=15,B=34,px=x=>L+(x+4)/8*(W-L-R),py=y=>H-B-y*(H-T-B);let density=[],cdf=[];for(let i=0;i<=400;i++){let x=-4+8*i/400;density.push([px(x),py(Math.exp(-x*x/2)/Math.sqrt(2*Math.PI)*2.5)]);cdf.push([px(x),py(refCDF(x))])}let path=a=>a.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");let g="";for(let y=0;y<=1;y+=.25){g+=`<line x1="${L}" y1="${py(y)}" x2="${W-R}" y2="${py(y)}" stroke="#203b55"/><text x="8" y="${py(y)+4}" fill="#9db1c8" font-size="10">${y.toFixed(2)}</text>`}svg.innerHTML=g+`<path d="${path(density)}" fill="none" stroke="#f3c969" stroke-width="2.2"/><path d="${path(cdf)}" fill="none" stroke="#55d6e8" stroke-width="2.8"/>`+[-4,-2,0,2,4].map(x=>`<text x="${px(x)-7}" y="${H-9}" fill="#9db1c8" font-size="11">${x}</text>`).join("")+`<text x="600" y="25" fill="#55d6e8" font-size="12">Φ(x)</text><text x="680" y="25" fill="#f3c969" font-size="12">scaled φ(x)</text>`}
+$("calcCDF").onclick=cdfCalc;$("cdfExamples").onclick=()=>{ $("zval").value="1.96";cdfCalc()};$("zval").addEventListener("change",cdfCalc);cdfTable();cdfCalc();
+</script></body></html>
